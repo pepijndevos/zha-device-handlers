@@ -5,10 +5,9 @@ DM2550ZB-G2.
 """
 
 import logging
-from typing import Any, Final, Optional, Union
+from typing import Any, Final
 
 import zigpy.profiles.zha as zha_p
-from zigpy.quirks import CustomCluster, CustomDevice
 import zigpy.types as t
 from zigpy.zcl import foundation
 from zigpy.zcl.clusters.general import (
@@ -24,8 +23,10 @@ from zigpy.zcl.clusters.general import (
 )
 from zigpy.zcl.clusters.homeautomation import Diagnostic, ElectricalMeasurement
 from zigpy.zcl.clusters.smartenergy import Metering
+from zigpy.zcl.foundation import BaseCommandDefs
 
 from zhaquirks import EventableCluster
+from zhaquirks.clusters import CustomCluster
 from zhaquirks.const import (
     ATTRIBUTE_ID,
     ATTRIBUTE_NAME,
@@ -46,6 +47,7 @@ from zhaquirks.const import (
     VALUE,
     ZHA_SEND_EVENT,
 )
+from zhaquirks.legacy import CustomDevice
 from zhaquirks.sinope import (
     ATTRIBUTE_ACTION,
     LIGHT_DEVICE_TRIGGERS,
@@ -148,23 +150,21 @@ class SinopeTechnologiesManufacturerCluster(CustomCluster):
         )
         cluster_revision: Final = foundation.ZCL_CLUSTER_REVISION_ATTR
 
-    server_commands = {
-        0x54: foundation.ZCLCommandDef(
-            "button_press",
-            {"command": t.uint8_t},
-            direction=foundation.Direction.Server_to_Client,
+    class ServerCommandDefs(BaseCommandDefs):
+        """Server command definitions."""
+
+        button_press = foundation.ZCLCommandDef(
+            id=0x54,
+            schema={"command": t.uint8_t},
             is_manufacturer_specific=True,
         )
-    }
 
     def handle_cluster_general_request(
         self,
         hdr: foundation.ZCLHeader,
         args: list[Any],
         *,
-        dst_addressing: Optional[
-            Union[t.Addressing.Group, t.Addressing.IEEE, t.Addressing.NWK]
-        ] = None,
+        dst_addressing: t.AddrMode | None = None,
     ):
         """Handle the cluster command."""
         self.debug(

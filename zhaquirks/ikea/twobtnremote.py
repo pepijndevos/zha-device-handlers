@@ -1,7 +1,6 @@
 """Device handler for IKEA of Sweden TRADFRI remote control."""
 
 from zigpy.profiles import zha, zll
-from zigpy.quirks import CustomDevice
 from zigpy.zcl.clusters.closures import WindowCovering
 from zigpy.zcl.clusters.general import (
     Alarms,
@@ -47,6 +46,7 @@ from zhaquirks.ikea import (
     DoublingPowerConfig1CRCluster,
     PowerConfig1AAACluster,
 )
+from zhaquirks.legacy import CustomDevice
 
 
 class IkeaTradfriRemote2Btn(CustomDevice):
@@ -272,7 +272,7 @@ class IkeaRodretRemote2BtnNew(CustomDevice):
         # device_version=1
         # input_clusters=[0, 1, 3, 4, 32, 4096, 64636]
         # output_clusters=[3, 4, 6, 8, 258, 4096]>
-        MODELS_INFO: [(IKEA, "RODRET Dimmer")],
+        MODELS_INFO: [(IKEA, "RODRET Dimmer"), (IKEA, "RODRET wireless dimmer")],
         ENDPOINTS: {
             1: {
                 PROFILE_ID: zha.PROFILE_ID,

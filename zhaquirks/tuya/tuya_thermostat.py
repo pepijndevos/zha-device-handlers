@@ -1,20 +1,20 @@
 """Tuya TS0601 Thermostat."""
 
-import copy
+from zigpy.types import t
+from zigpy.zcl import foundation
+from zigpy.zcl.clusters.hvac import RunningState, Thermostat
 
-from zigpy.quirks.v2 import BinarySensorDeviceClass, EntityType
-from zigpy.quirks.v2.homeassistant import (
+from zhaquirks.builder import (
+    BinarySensorDeviceClass,
+    EntityType,
+    SensorDeviceClass,
+    SensorStateClass,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfPower,
     UnitOfTemperature,
 )
-from zigpy.quirks.v2.homeassistant.sensor import SensorDeviceClass, SensorStateClass
-from zigpy.types import t
-from zigpy.zcl import foundation
-from zigpy.zcl.clusters.hvac import RunningState, Thermostat
-
 from zhaquirks.tuya import TUYA_SET_TIME, TuyaTimePayload
 from zhaquirks.tuya.builder import TuyaQuirkBuilder
 from zhaquirks.tuya.mcu import TuyaAttributesCluster, TuyaMCUCluster
@@ -131,21 +131,18 @@ class TuyaThermostat(Thermostat, TuyaAttributesCluster):
 class NoManufTimeNoVersionRespTuyaMCUCluster(TuyaMCUCluster):
     """Tuya Manufacturer Cluster with set_time mod."""
 
-    # Deepcopy required to override 'set_time', without, it will revert
-    server_commands = copy.deepcopy(TuyaMCUCluster.server_commands)
-    server_commands.update(
-        {
-            TUYA_SET_TIME: foundation.ZCLCommandDef(
-                "set_time",
-                {"time": TuyaTimePayload},
-                False,
-                is_manufacturer_specific=False,
-            ),
-        }
-    )
+    class ServerCommandDefs(TuyaMCUCluster.ServerCommandDefs):
+        """Server command definitions."""
+
+        set_time = foundation.ZCLCommandDef(
+            id=TUYA_SET_TIME,
+            schema={"time": TuyaTimePayload},
+            is_manufacturer_specific=False,
+        )
 
     def handle_mcu_version_response(
-        self, payload: TuyaMCUCluster.MCUVersion
+        self,
+        payload: TuyaMCUCluster.MCUVersion,  # type:ignore[valid-type]
     ) -> foundation.Status:
         """Handle MCU version response."""
         return foundation.Status.SUCCESS
@@ -423,6 +420,7 @@ base_avatto_quirk = (
 (
     base_avatto_quirk.clone()
     .applies_to("_TZE204_lzriup1j", "TS0601")
+    .applies_to("_TZE204_gops3slb", "TS0601")
     .tuya_enum(
         dp_id=4,
         attribute_name="preset_mode",
@@ -486,7 +484,9 @@ base_avatto_quirk = (
 
 # Beok TGM50-ZB-WPB
 (
-    TuyaQuirkBuilder("_TZE204_cvub6xbb", "TS0601")
+    TuyaQuirkBuilder()
+    .applies_to("_TZE204_cvub6xbb", "TS0601")
+    .applies_to("_TZE284_cvub6xbb", "TS0601")
     .tuya_dp(
         dp_id=1,
         ep_attribute=TuyaThermostat.ep_attribute,

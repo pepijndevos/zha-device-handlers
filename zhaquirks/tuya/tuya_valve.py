@@ -2,17 +2,20 @@
 
 from datetime import datetime, timedelta, timezone
 
-from zigpy.quirks.v2 import BinarySensorDeviceClass, EntityPlatform, EntityType
-from zigpy.quirks.v2.homeassistant import (
+import zigpy.types as t
+from zigpy.zcl.clusters.smartenergy import Metering
+
+from zhaquirks.builder import (
     PERCENTAGE,
+    BinarySensorDeviceClass,
+    EntityPlatform,
+    EntityType,
+    SensorDeviceClass,
+    SensorStateClass,
     UnitOfElectricPotential,
     UnitOfTime,
     UnitOfVolume,
 )
-from zigpy.quirks.v2.homeassistant.sensor import SensorDeviceClass, SensorStateClass
-import zigpy.types as t
-from zigpy.zcl.clusters.smartenergy import Metering
-
 from zhaquirks.const import BatterySize
 from zhaquirks.tuya import TUYA_CLUSTER_ID, TUYA_SEND_DATA
 from zhaquirks.tuya.builder import TuyaQuirkBuilder, TuyaValveWaterConsumed
@@ -263,7 +266,7 @@ gx02_base_quirk = (
         dp_id=114,
         attribute_name="irrigation_duration",
         type=t.uint32_t,
-        converter=lambda x: giex_string_to_td(x),
+        converter=giex_string_to_td,
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.DURATION,
         unit=UnitOfTime.SECONDS,
@@ -274,7 +277,7 @@ gx02_base_quirk = (
         dp_id=101,
         attribute_name="irrigation_start_time",
         type=t.CharacterString,
-        converter=lambda x: giex_string_to_dt(x),
+        converter=giex_string_to_dt,
         device_class=SensorDeviceClass.TIMESTAMP,
         translation_key="irrigation_start_time",
         fallback_name="Irrigation start time",
@@ -283,7 +286,7 @@ gx02_base_quirk = (
         dp_id=102,
         attribute_name="irrigation_end_time",
         type=t.CharacterString,
-        converter=lambda x: giex_string_to_dt(x),
+        converter=giex_string_to_dt,
         device_class=SensorDeviceClass.TIMESTAMP,
         translation_key="irrigation_end_time",
         fallback_name="Irrigation end time",
@@ -362,7 +365,9 @@ class GiexIrrigationStatus(t.enum8):
 
 (
     TuyaQuirkBuilder("_TZE284_8zizsafo", "TS0601")  # Giex GX04
+    .applies_to("_TZE284_iilebqoo", "TS0601")  # NovaDigital ZVL_DUAL
     .applies_to("_TZE284_eaet5qt5", "TS0601")  # Insoma SGW08W
+    .applies_to("_TZE284_fhvpaltk", "TS0601")  # SGW08
     .tuya_battery(dp_id=59, battery_type=BatterySize.AA, battery_qty=4)
     .tuya_switch(
         dp_id=1,
@@ -510,6 +515,7 @@ class GiexIrrigationStatus(t.enum8):
         dp_id=3,
         attribute_name="valve_status",
         enum_class=TuyaValveStatus,
+        entity_type=EntityType.STANDARD,
         entity_platform=EntityPlatform.SENSOR,
         translation_key="valve_status",
         fallback_name="Valve status",
@@ -685,7 +691,7 @@ class GiexIrrigationStatus(t.enum8):
         attribute_name="auto_clean",
         entity_type=EntityType.CONFIG,
         translation_key="auto_clean",
-        fallback_name="Auto clean",
+        fallback_name="Autoclean",
     )
     .tuya_dp(
         dp_id=21,
@@ -722,7 +728,7 @@ class GiexIrrigationStatus(t.enum8):
         step=5,
         unit=PERCENTAGE,
         translation_key="valve_state_auto_shutdown",
-        fallback_name="Valve state auto shutdown",
+        fallback_name="Valve state auto-shutdown",
     )
     .tuya_sensor(
         dp_id=3,

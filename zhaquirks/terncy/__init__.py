@@ -2,17 +2,18 @@
 
 from collections import deque
 import math
-from typing import Any, Optional, Union
+from typing import Any
 
-from zigpy.quirks import CustomCluster
 import zigpy.types as t
 from zigpy.zcl import foundation
 from zigpy.zcl.clusters.measurement import (
     IlluminanceMeasurement,
     TemperatureMeasurement,
 )
+from zigpy.zcl.foundation import BaseCommandDefs
 
 from zhaquirks import LocalDataCluster, OccupancyOnEvent, _Motion
+from zhaquirks.clusters import CustomCluster
 from zhaquirks.const import (
     BUTTON,
     CLUSTER_COMMAND,
@@ -127,20 +128,19 @@ class TerncyRawCluster(CustomCluster):
     cluster_id = MANUFACTURER_SPECIFIC_CLUSTER_ID
     name = "Terncy Raw cluster"
 
-    client_commands = {
-        0x00: foundation.ZCLCommandDef(
-            "click_event",
-            {"count": t.uint8_t, "state": t.uint8_t},
-            False,
+    class ClientCommandDefs(BaseCommandDefs):
+        """Client command definitions."""
+
+        click_event = foundation.ZCLCommandDef(
+            id=0x00,
+            schema={"count": t.uint8_t, "state": t.uint8_t},
             is_manufacturer_specific=True,
-        ),
-        0x04: foundation.ZCLCommandDef(
-            "motion_event",
-            {"param1": t.uint8_t, "param2": t.uint8_t, "state": t.uint8_t},
-            False,
+        )
+        motion_event = foundation.ZCLCommandDef(
+            id=0x04,
+            schema={"param1": t.uint8_t, "param2": t.uint8_t, "state": t.uint8_t},
             is_manufacturer_specific=True,
-        ),
-    }
+        )
 
     def __init__(self, *args, **kwargs):
         """Init."""
@@ -152,9 +152,7 @@ class TerncyRawCluster(CustomCluster):
         hdr: foundation.ZCLHeader,
         args: list[Any],
         *,
-        dst_addressing: Optional[
-            Union[t.Addressing.Group, t.Addressing.IEEE, t.Addressing.NWK]
-        ] = None,
+        dst_addressing: t.AddrMode | None = None,
     ):
         """Handle a cluster command received on this cluster."""
         if hdr.command_id == 0:  # click event

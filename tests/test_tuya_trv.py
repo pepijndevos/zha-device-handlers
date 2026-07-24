@@ -4,7 +4,6 @@ from unittest import mock
 
 import pytest
 from zigpy.profiles import zha
-import zigpy.types as t
 from zigpy.zcl import foundation
 from zigpy.zcl.clusters.hvac import Thermostat
 
@@ -203,7 +202,9 @@ async def test_handle_get_data(
             expect_reply=False,
             use_ieee=False,
             ask_for_ack=None,
-            priority=t.PacketPriority.NORMAL,
+            priority=None,
+            retries=None,
+            retry_delay=None,
         )
         assert status == [
             foundation.WriteAttributesStatusRecord(foundation.Status.SUCCESS)
@@ -228,7 +229,9 @@ async def test_handle_get_data(
             expect_reply=False,
             use_ieee=False,
             ask_for_ack=None,
-            priority=t.PacketPriority.NORMAL,
+            priority=None,
+            retries=None,
+            retry_delay=None,
         )
         if set_schedule_off:
             # Ensure schedule_enable set to off
@@ -241,7 +244,9 @@ async def test_handle_get_data(
                 expect_reply=False,
                 use_ieee=False,
                 ask_for_ack=None,
-                priority=t.PacketPriority.NORMAL,
+                priority=None,
+                retries=None,
+                retry_delay=None,
             )
 
         assert status == [
@@ -265,7 +270,9 @@ async def test_handle_get_data(
             expect_reply=False,
             use_ieee=False,
             ask_for_ack=None,
-            priority=t.PacketPriority.NORMAL,
+            priority=None,
+            retries=None,
+            retry_delay=None,
         )
         if set_schedule_off:
             # Ensure schedule_enable set to off
@@ -278,7 +285,9 @@ async def test_handle_get_data(
                 expect_reply=False,
                 use_ieee=False,
                 ask_for_ack=None,
-                priority=t.PacketPriority.NORMAL,
+                priority=None,
+                retries=None,
+                retry_delay=None,
             )
         assert status == [
             foundation.WriteAttributesStatusRecord(foundation.Status.SUCCESS)
